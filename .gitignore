@@ -1,0 +1,12 @@
+
+*.class
+
+*.jar
+
+target/
+
+*.iml
+
+cviceni5_v2/\.settings/
+
+cviceni5_v2/\.idea/
