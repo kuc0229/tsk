@@ -13,7 +13,7 @@ import java.util.concurrent.TimeUnit;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 
-public class ShoppingCartItemBoundaryValue {
+public class ShoppingCartItemBoundaryValueAnalysis {
     private WebDriver driver;
     private String baseUrl;
     private boolean acceptNextAlert = true;
@@ -28,6 +28,22 @@ public class ShoppingCartItemBoundaryValue {
         driver.manage().timeouts().implicitlyWait(30, TimeUnit.SECONDS);
     }
 
+    /**
+     * ID: 1
+     * Jmeno: testNegativeValue
+     * Popis: Pri zadavani poctu polozek do kosiku zkusi zadat zapornou hodnotu
+     * Podminky:
+     *     1, Existuje Hardware polozka v menu
+     *     2, Existuje Graphics Cards polozka v menu
+     *     3, Existuje zbozi Graphic Card Matrox G200 MMS
+     * Akce:
+     *     1, Vybere zbozi Matrox G200 MMS Graphic Card
+     *     2, Zada -1 jako pocet polozek
+     *     3, Prida zbozi do kosiku
+     * Ocekavane vysledky:
+     *     1, Zbozi se neprida do kosiku
+     *     2, Zobrazi se chybova hlaska "Quantity Units errors"
+     */
     @Test
     public void testNegativeValue() {
 
@@ -61,6 +77,21 @@ public class ShoppingCartItemBoundaryValue {
         }
     }
 
+    /**
+     * ID: 2
+     * Jmeno: testZeroValue
+     * Popis: Pri zadavani poctu polozek do kosiku zkusi zadat nulovou hodnotu
+     * Podminky:
+     *     1, Existuje Hardware polozka v menu
+     *     2, Existuje Graphics Cards polozka v menu
+     *     3, Existuje zbozi Graphic Card Matrox G200 MMS
+     * Akce:
+     *     1, Vybere zbozi Matrox G200 MMS Graphic Card
+     *     2, Zada 0 jako pocet polozek
+     *     3, Prida zbozi do kosiku
+     * Ocekavane vysledky:
+     *     1, Kosik zustane beze zmeny
+     */
     @Test
     public void testZeroValue() {
 
@@ -89,6 +120,24 @@ public class ShoppingCartItemBoundaryValue {
         Assert.assertEquals("Expected empty shopping cart", emptyShoppingCartText, driver.findElement(By.id("cartEmptyText")).getText());
     }
 
+    /**
+     * ID: 3
+     * Jmeno: testMaxValue
+     * Popis: Pri zadavani poctu polozek do kosiku zkusi maximalni dostupnout hodnotu
+     * Podminky:
+     *     1, Existuje Hardware polozka v menu
+     *     2, Existuje Graphics Cards polozka v menu
+     *     3, Existuje zbozi Graphic Card Matrox G200 MMS a lze je pridat do kosiku
+     *     4, Na sklade je alespon jeden kus
+     * Akce:
+     *     1, Vybere zbozi Matrox G200 MMS Graphic Card
+     *     2, Zada max pocet polozek dostupnych na sklade
+     *     3, Prida zbozi do kosiku
+     * Ocekavane vysledky:
+     *     1, Do kosiku se prida nove zbozi
+     *     2, Pocet polozek v kosiku bude odpovidat poctu max poctu kusu Graphic Card Matrox G200 MMS  na sklade
+     *     3, Zobrazi se informacni zprava o zmene obsahu kosiku
+     */
     @Test
     public void testMaxValue() {
 
@@ -121,22 +170,37 @@ public class ShoppingCartItemBoundaryValue {
         }
         elements.get(0).click();
 
-        final String[] cartTotalsDisplays = driver.findElement(By.className("cartTotalsDisplay")).getText().split("  ");
+        final String[] cartTotalsDisplays = driver.findElement(By.className("cartTotalsDisplay")).getText().split(" ");
 
         if (!(cartTotalsDisplays.length > 0)) {
             fail("Could not get cart total display");
         }
 
-        final String[] totalItem = cartTotalsDisplays[0].split("Total Items: ");
-
-        if (!(totalItem.length > 0)) {
-            fail("Could not get Total items value");
-        }
-        final int totalItemValue = Integer.parseInt(totalItem[1]);
+//        final String[] totalItem = cartTotalsDisplays[0].split("Total Items: ");
+//        if (!(totalItem.length > 0)) {
+//            fail("Could not get Total items value");
+//        }
+        final int totalItemValue = Integer.parseInt(cartTotalsDisplays[2]);
 
         assertEquals("Expected equals quantity and totel item", maxValue, totalItemValue);
     }
 
+    /**
+     * ID: 4
+     * Jmeno: testExceededMaxValue
+     * Popis: Pri zadavani poctu polozek do kosiku zkusi zadat maximalni dostupnout hodnotu + 1
+     * Podminky:
+     *     1, Existuje Hardware polozka v menu
+     *     2, Existuje Graphics Cards polozka v menu
+     *     3, Existuje zbozi Graphic Card Matrox G200 MMS a lze je pridat do kosiku
+     * Akce:
+     *     1, Vybere zbozi Matrox G200 MMS Graphic Card
+     *     2, Zada max pocet polozek dostupnych na sklade + 1
+     *     3, Prida zbozi do kosiku
+     * Ocekavane vysledky:
+     *     1, Obsah kosiku se nezmeni
+     *     2, Zobrazi se chybova zprava: "The quantity added to your cart has been adjusted because of a restriction on maximum you are allowed."
+     */
     @Test
     public void testExceededMaxValue() {
 
@@ -178,7 +242,7 @@ public class ShoppingCartItemBoundaryValue {
     }
 
     @After
-    public void tearDown() throws Exception {
+    public void tearDown() {
         driver.quit();
         String verificationErrorString = verificationErrors.toString();
         if (!"".equals(verificationErrorString)) {
